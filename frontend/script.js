@@ -51,6 +51,9 @@ const newUploadBtn  = document.getElementById("newUploadBtn");
 
 const recentBody    = document.getElementById("recentBody");
 const recentBadge   = document.getElementById("recentBadge");
+const rsFiles       = document.getElementById("rsFiles");
+const rsBundles     = document.getElementById("rsBundles");
+const rsSize        = document.getElementById("rsSize");
 
 // ── Helpers ────────────────────────────────────
 function formatSize(bytes) {
@@ -179,21 +182,97 @@ function refreshFileList() {
 
 function addFiles(newFiles) {
   hideError();
-  const skipped = [];
+
+  const errors   = []; // { name, reason, type }
+  const added    = [];
+  const dupes    = [];
+
   newFiles.forEach(f => {
     const err = validateFile(f);
-    if (err) { skipped.push(f.name); return; }
-    // avoid duplicates by name+size
+
+    if (err) {
+      // categorise the error so we can style it properly
+      if (f.size > 10 * 1024 * 1024) {
+        errors.push({
+          name:   f.name,
+          reason: `File is ${formatSize(f.size)} — exceeds the 10MB limit.`,
+          type:   "size",
+        });
+      } else if (f.size === 0) {
+        errors.push({ name: f.name, reason: "File is empty (0 bytes).", type: "empty" });
+      } else if (!f.name.includes(".")) {
+        errors.push({ name: f.name, reason: "File has no extension.", type: "ext" });
+      } else {
+        errors.push({ name: f.name, reason: err, type: "other" });
+      }
+      return;
+    }
+
     const dup = selectedFiles.some(x => x.name === f.name && x.size === f.size);
-    if (!dup) selectedFiles.push(f);
+    if (dup) { dupes.push(f.name); return; }
+
+    selectedFiles.push(f);
+    added.push(f.name);
   });
-  if (skipped.length) toast(`Skipped: ${skipped.join(", ")}`, "warning");
+
+  // ── show inline error cards for each rejected file ──────────────────────────
+  if (errors.length > 0) {
+    // remove any previous file error banners
+    document.querySelectorAll(".file-error-banner").forEach(b => b.remove());
+
+    const container = document.getElementById("dzFileErrors");
+
+    errors.forEach((e, idx) => {
+      const banner = document.createElement("div");
+      banner.className = "file-error-banner";
+      banner.style.animationDelay = (idx * 0.06) + "s";
+      banner.innerHTML = `
+        <div class="feb-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+              stroke="currentColor" stroke-width="1.5"/>
+            <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="feb-info">
+          <span class="feb-name">${escHtml(e.name)}</span>
+          <span class="feb-reason">${escHtml(e.reason)}</span>
+        </div>
+        <button class="feb-close" title="Dismiss">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>`;
+      banner.querySelector(".feb-close").addEventListener("click", () => {
+        banner.style.animation = "feb-out .2s ease forwards";
+        setTimeout(() => banner.remove(), 210);
+      });
+      container.appendChild(banner);
+
+      // auto-dismiss after 7 seconds
+      setTimeout(() => {
+        if (banner.parentElement) {
+          banner.style.animation = "feb-out .2s ease forwards";
+          setTimeout(() => banner.remove(), 210);
+        }
+      }, 7000);
+    });
+  }
+
+  // dupe toast (less important, just a subtle info)
+  if (dupes.length && !errors.length && !added.length) {
+    toast(`Already added: ${dupes.join(", ")}`, "info");
+  }
+
   refreshFileList();
 }
 
 function clearAll() {
   selectedFiles = [];
   fileInput.value = "";
+  document.querySelectorAll(".file-error-banner").forEach(b => b.remove());
   refreshFileList();
   hideError();
 }
@@ -454,7 +533,9 @@ function showResult(items) {
   // ── bundle link card (multi-file only) ──────────────────────────────────────
   if (isMulti) {
     bundleLinkWrap.style.display = "block";
-    const bundleLink = buildBundleUrl(items[0].bundle_id || genBundleId(), items);
+    // always point to preview.html, never the raw API URL
+    const bundleId_result = items[0].bundle_id || genBundleId();
+    const bundleLink = buildBundleUrl(bundleId_result, items);
 
     // store URL on button as data attr — never show raw URL in DOM
     const copyBtn = document.getElementById("bundleCopyBtn");
@@ -524,16 +605,21 @@ function showResult(items) {
 
 // build a preview URL that encodes all file URLs in query params
 function buildBundleUrl(bundleId, items) {
-  // new backend format: preview.html?bundle_id=bundle_123
-  // preview.html will call GET API to fetch all files in bundle
-  const base = window.location.href.replace("index.html","").replace(/\/$/, "");
-  return `${base}/preview.html?bundle_id=${encodeURIComponent(bundleId)}`;
+  // generates a preview.html link — preview.html calls GET API to list bundle files
+  const href = window.location.href;
+  const base = href.includes("index.html")
+    ? href.replace("index.html", "")
+    : href.replace(/\/[^\/]*$/, "/");
+  return `${base}preview.html?bundle_id=${encodeURIComponent(bundleId)}`;
 }
 
 function buildSinglePreviewUrl(url) {
-  // preview.html reads ?f=<s3_download_url> for single file preview
-  const base = window.location.href.replace("index.html","").replace(/\/$/, "");
-  return `${base}/preview.html?f=${encodeURIComponent(url)}`;
+  // generates a preview.html link for a single file
+  const href = window.location.href;
+  const base = href.includes("index.html")
+    ? href.replace("index.html", "")
+    : href.replace(/\/[^\/]*$/, "/");
+  return `${base}preview.html?f=${encodeURIComponent(url)}`;
 }
 
 // ── Copy helpers ───────────────────────────────
@@ -582,10 +668,9 @@ function loadFromStorage() {
 function saveToStorage(items) {
   const existing = loadFromStorage();
   const isBundle = items.length > 1;
-  // use bundle_url from API response if available, else build local one
-  const apiBundleUrl = isBundle ? (items.find(i => i.bundle_url)?.bundle_url || null) : null;
+  const bundleId = items[0].bundle_id || genBundleId();
   const entry = {
-    id:        items[0].bundle_id || genBundleId(),
+    id:        bundleId,
     ts:        Date.now(),
     isBundle,
     files: items.map(i => ({
@@ -594,7 +679,8 @@ function saveToStorage(items) {
       url:    i.url,
       s3_key: i.s3_key || null,
     })),
-    bundleUrl: isBundle ? (apiBundleUrl || buildBundleUrl(items[0].bundle_id || genBundleId(), items)) : null,
+    // ALWAYS use local preview.html URL — never the raw API bundle_url
+    bundleUrl: isBundle ? buildBundleUrl(bundleId, items) : null,
   };
   const updated = [entry, ...existing].slice(0, 20);
   try { localStorage.setItem(LS_KEY, JSON.stringify(updated)); } catch {}
@@ -632,6 +718,14 @@ async function deleteEntry(entryId) {
 function renderRecent() {
   const uploads = loadFromStorage();
   recentBadge.textContent = uploads.length + (uploads.length === 1 ? " file" : " files");
+
+  // update stats bar
+  const totalFiles   = uploads.reduce((s, u) => s + u.files.length, 0);
+  const totalBundles = uploads.filter(u => u.isBundle).length;
+  const totalBytes   = uploads.reduce((s, u) => s + u.files.reduce((ss, f) => ss + (f.size || 0), 0), 0);
+  if (rsFiles)   rsFiles.textContent   = totalFiles;
+  if (rsBundles) rsBundles.textContent = totalBundles;
+  if (rsSize)    rsSize.textContent    = formatSize(totalBytes) !== "—" ? formatSize(totalBytes) : "0 KB";
 
   recentBody.innerHTML = "";
 
@@ -711,12 +805,66 @@ function renderRecent() {
       }).catch(() => toast("Could not copy.", "error"));
     });
 
-    // delete button
+    // delete button — premium inline confirm (no browser alert)
     const delBtn = el.querySelector(".ri-delete");
     delBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      if (!confirm(`Delete "${displayName}" from cloud and history?`)) return;
-      deleteEntry(entry.id);
+      // if confirm UI already open on this item, close it
+      if (el.querySelector(".ri-delete-confirm")) {
+        el.querySelector(".ri-delete-confirm").remove();
+        el.classList.remove("deleting");
+        return;
+      }
+      // close any other open confirms
+      document.querySelectorAll(".ri-delete-confirm").forEach(c => {
+        c.closest(".recent-item")?.classList.remove("deleting");
+        c.remove();
+      });
+
+      el.classList.add("deleting");
+      const confirm = document.createElement("div");
+      confirm.className = "ri-delete-confirm";
+      confirm.innerHTML = `
+        <span class="ri-dc-msg">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Delete permanently?
+        </span>
+        <div class="ri-dc-actions">
+          <button class="ri-dc-cancel">Cancel</button>
+          <button class="ri-dc-confirm">Delete</button>
+        </div>`;
+
+      el.appendChild(confirm);
+      // animate in
+      requestAnimationFrame(() => confirm.classList.add("visible"));
+
+      confirm.querySelector(".ri-dc-cancel").addEventListener("click", (e) => {
+        e.stopPropagation();
+        confirm.classList.remove("visible");
+        setTimeout(() => { confirm.remove(); el.classList.remove("deleting"); }, 200);
+      });
+      confirm.querySelector(".ri-dc-confirm").addEventListener("click", (e) => {
+        e.stopPropagation();
+        confirm.remove();
+        el.classList.remove("deleting");
+        // animate row out
+        el.style.transition = "opacity .25s, transform .25s";
+        el.style.opacity = "0";
+        el.style.transform = "translateX(12px)";
+        setTimeout(() => deleteEntry(entry.id), 280);
+      });
+
+      // auto-close after 5s
+      setTimeout(() => {
+        if (confirm.parentElement) {
+          confirm.classList.remove("visible");
+          setTimeout(() => { confirm.remove(); el.classList.remove("deleting"); }, 200);
+        }
+      }, 5000);
     });
 
     recentBody.appendChild(el);

@@ -3,7 +3,19 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NimbusShare — Serverless File Sharing</title>
+  <title>Drop-IT — Serverless File Sharing</title>
+
+  <!-- ── FAVICON — multiple sizes so tab icon is large & crisp ── -->
+  <link rel="icon" type="image/x-icon"  href="favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="32x32"   href="favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="64x64"   href="favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png"/>
+  <link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png"/>
+  <link rel="apple-touch-icon" sizes="180x180"      href="favicon-180.png"/>
+  <meta name="msapplication-TileImage" content="favicon-192.png"/>
+  <meta name="theme-color" content="#07090f"/>
+
+  <!-- ── FONTS ── -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css"/>
@@ -20,18 +32,8 @@
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
       <div class="nav-logo">
-        <div class="logo-mark">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-            <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <span class="logo-text">NimbusShare</span>
-      </div>
-      <div class="nav-pills">
-        <span class="pill">AWS S3</span>
-        <span class="pill">Lambda</span>
-        <span class="pill">Serverless</span>
+        <img src="logo.png" alt="Drop-It" class="nav-logo-img"/>
+        <span class="logo-text">Drop-It</span>
       </div>
       <div class="nav-right">
         <span class="online-dot"></span>
@@ -42,15 +44,87 @@
 
   <!-- HERO -->
   <section class="hero">
-    <p class="hero-eyebrow">CLOUD FILE SHARING PLATFORM</p>
-    <h1 class="hero-title">Upload.<br/><em>Share instantly.</em></h1>
-    <p class="hero-desc">Drop your files. Get a shareable link in seconds.<br/>Powered by AWS Lambda · S3 · API Gateway.</p>
-    <div class="hero-stats">
-      <div class="hstat"><span class="hstat-n">10MB</span><span class="hstat-l">Max per file</span></div>
-      <div class="hstat-sep"></div>
-      <div class="hstat"><span class="hstat-n">∞</span><span class="hstat-l">Bundle size</span></div>
-      <div class="hstat-sep"></div>
-      <div class="hstat"><span class="hstat-n">AES</span><span class="hstat-l">Encrypted</span></div>
+    <div class="hero-left">
+      <p class="hero-eyebrow">CLOUD FILE SHARING PLATFORM</p>
+      <h1 class="hero-title">Upload.<br/><em>Share instantly.</em></h1>
+      <p class="hero-desc">Drop your files. Get a shareable link in seconds.</p>
+      <div class="hero-stats">
+        <div class="hstat"><span class="hstat-n">10MB</span><span class="hstat-l">Max per file</span></div>
+        <div class="hstat-sep"></div>
+        <div class="hstat"><span class="hstat-n">∞</span><span class="hstat-l">Bundle size</span></div>
+        <div class="hstat-sep"></div>
+        <div class="hstat"><span class="hstat-n">AES</span><span class="hstat-l">Encrypted</span></div>
+      </div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div class="hero-right">
+      <p class="hiw-label">HOW IT WORKS</p>
+      <div class="hiw-steps">
+
+        <div class="hiw-step">
+          <div class="hiw-step-left">
+            <div class="hiw-num">01</div>
+            <div class="hiw-line"></div>
+          </div>
+          <div class="hiw-body">
+            <div class="hiw-icon-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="hiw-text">
+              <span class="hiw-title">Drop your files</span>
+              <span class="hiw-sub">Drag &amp; drop or browse — any file type, up to 10MB each</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hiw-step">
+          <div class="hiw-step-left">
+            <div class="hiw-num">02</div>
+            <div class="hiw-line"></div>
+          </div>
+          <div class="hiw-body">
+            <div class="hiw-icon-wrap" style="background:rgba(168,85,247,0.1);border-color:rgba(168,85,247,0.2);color:#c084fc">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="hiw-text">
+              <span class="hiw-title">Instant upload</span>
+              <span class="hiw-sub">Files go straight to AWS S3 via Lambda — encrypted &amp; stored permanently</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hiw-step">
+          <div class="hiw-step-left">
+            <div class="hiw-num">03</div>
+            <div class="hiw-line hiw-line-last"></div>
+          </div>
+          <div class="hiw-body">
+            <div class="hiw-icon-wrap" style="background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.2);color:#22c55e">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="hiw-text">
+              <span class="hiw-title">Share the link</span>
+              <span class="hiw-sub">One click to copy — anyone with the link can preview &amp; download instantly</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="hiw-footer">
+        <span class="hiw-footer-dot"></span>
+        <span class="hiw-footer-text">No account needed · No expiry · No limits on bundles</span>
+      </div>
     </div>
   </section>
 
@@ -63,7 +137,7 @@
         <div class="card-head">
           <div>
             <h2 class="card-title">Upload Files</h2>
-            <p class="card-sub">Any file type · Max 5MB each · Link expires in 24h</p>
+            <p class="card-sub">Any file type · Max 10MB each · Stored permanently</p>
           </div>
           <span class="card-tag">New Upload</span>
         </div>
@@ -103,6 +177,9 @@
           </div>
         </div>
 
+        <!-- PER-FILE VALIDATION ERRORS -->
+        <div id="dzFileErrors"></div>
+
         <!-- ERROR -->
         <div class="error-strip" id="errorStrip" style="display:none">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -121,7 +198,7 @@
               <polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            Upload & Get Link
+            Upload &amp; Get Link
           </span>
           <span id="btnLoading" class="btn-inner" style="display:none">
             <span class="spin"></span> Uploading...
@@ -164,7 +241,7 @@
             </div>
           </div>
 
-          <!-- BUNDLE LINK (shown for multi-file) -->
+          <!-- BUNDLE LINK -->
           <div id="bundleLinkWrap" style="display:none">
             <p class="link-section-label">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -229,9 +306,31 @@
         <!-- RECENT UPLOADS -->
         <div class="card recent-card" id="recentCard">
           <div class="recent-head">
-            <h3 class="recent-title">Recent Uploads</h3>
+            <div class="recent-head-left">
+              <h3 class="recent-title">Recent Uploads</h3>
+              <p class="recent-sub">Stored on your device · Click to open</p>
+            </div>
             <span class="recent-badge" id="recentBadge">0 files</span>
           </div>
+
+          <!-- STATS BAR -->
+          <div class="recent-stats" id="recentStats">
+            <div class="rs-item">
+              <span class="rs-val" id="rsFiles">0</span>
+              <span class="rs-label">Files</span>
+            </div>
+            <div class="rs-div"></div>
+            <div class="rs-item">
+              <span class="rs-val" id="rsBundles">0</span>
+              <span class="rs-label">Bundles</span>
+            </div>
+            <div class="rs-div"></div>
+            <div class="rs-item">
+              <span class="rs-val" id="rsSize">0 KB</span>
+              <span class="rs-label">Stored</span>
+            </div>
+          </div>
+
           <div class="recent-body" id="recentBody">
             <!-- skeleton / empty / items injected here -->
           </div>
@@ -244,11 +343,11 @@
   <!-- FOOTER -->
   <footer class="footer">
     <div class="footer-inner">
-      <span class="footer-brand">NimbusShare</span>
+      <span class="footer-brand">Drop-It</span>
       <span class="footer-sep">·</span>
       <span class="footer-info">Built on AWS Lambda · S3 · API Gateway · DynamoDB</span>
       <span class="footer-sep">·</span>
-      <span class="footer-info">Files auto-deleted after 24 hours</span>
+      <span class="footer-info">Files stored permanently · No account needed</span>
     </div>
   </footer>
 
