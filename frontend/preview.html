@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Drop-It — Preview</title>
+
+  <!-- ── FAVICON — all sizes ── -->
+  <link rel="icon" type="image/x-icon"  href="favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="32x32"   href="favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="64x64"   href="favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png"/>
+  <link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png"/>
+  <link rel="apple-touch-icon" sizes="180x180"      href="favicon-180.png"/>
+  <meta name="msapplication-TileImage" content="favicon-192.png"/>
+  <meta name="theme-color" content="#07090f"/>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#07090f; --surface:#0c0f18; --card:#0f1219; --card-hover:#111622;
+      --border:rgba(255,255,255,0.06); --border-lit:rgba(255,255,255,0.12);
+      --accent:#4f8cff; --accent-dim:rgba(79,140,255,0.12); --accent-glow:rgba(79,140,255,0.25);
+      --green:#22c55e; --green-dim:rgba(34,197,94,0.12); --green-glow:rgba(34,197,94,0.25);
+      --amber:#f59e0b; --amber-dim:rgba(245,158,11,0.12);
+      --red:#ef4444; --red-dim:rgba(239,68,68,0.1);
+      --text:#eef0f6; --text-2:#8b93a8; --text-3:#484f61;
+      --font-d:'Bebas Neue',sans-serif;
+      --font-b:'DM Sans',sans-serif;
+      --font-m:'JetBrains Mono',monospace;
+      --r:14px; --r-sm:9px; --r-xs:6px;
+      --ease:cubic-bezier(0.4,0,0.2,1);
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:15px;line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+    /* ── BACKGROUND ── */
+    .bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
+      background-image:linear-gradient(rgba(79,140,255,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(79,140,255,0.022) 1px,transparent 1px);
+      background-size:56px 56px;}
+    .bg-glow{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0;}
+    .g1{width:700px;height:700px;top:-200px;right:-150px;background:radial-gradient(circle,rgba(79,140,255,0.06) 0%,transparent 70%);}
+    .g2{width:500px;height:500px;bottom:-100px;left:-100px;background:radial-gradient(circle,rgba(34,197,94,0.035) 0%,transparent 70%);}
+
+    /* ── NAV ── */
+    .navbar{position:sticky;top:0;z-index:200;background:rgba(7,9,15,0.9);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);}
+    .nav-inner{max-width:1160px;margin:0 auto;padding:0 32px;height:72px;display:flex;align-items:center;gap:16px;}
+    .nav-logo{display:flex;align-items:center;gap:4px;text-decoration:none;color:var(--text);}
+    .nav-logo-img{height:58px;width:auto;object-fit:contain;filter:brightness(1.08) drop-shadow(0 0 8px rgba(79,140,255,0.18));transition:filter .25s ease,transform .25s ease;}
+    .nav-logo:hover .nav-logo-img{filter:brightness(1.2) drop-shadow(0 0 16px rgba(250,200,0,0.4));transform:scale(1.05);}
+    .logo-text{font-family:var(--font-d);font-size:24px;letter-spacing:1.5px;}
+    .nav-tags{display:flex;gap:6px;margin-left:4px;}
+    .nav-tag{font-family:var(--font-m);font-size:9px;letter-spacing:1px;padding:3px 8px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text-3);text-transform:uppercase;}
+    .nav-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+    .nav-back{display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--r-sm);background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text-2);font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .18s var(--ease);}
+    .nav-back:hover{background:rgba(255,255,255,0.08);color:var(--text);border-color:var(--border-lit);}
+
+    /* ── MAIN ── */
+    .main{max-width:1160px;margin:0 auto;padding:44px 32px 100px;position:relative;z-index:1;}
+
+    /* ── LOADING / ERROR ── */
+    .state-center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:100px 20px;text-align:center;}
+    .state-icon{width:72px;height:72px;border-radius:18px;display:flex;align-items:center;justify-content:center;}
+    .state-icon.loading{background:var(--accent-dim);border:1px solid rgba(79,140,255,0.2);color:var(--accent);}
+    .state-icon.error{background:var(--red-dim);border:1px solid rgba(239,68,68,0.2);color:var(--red);}
+    .state-title{font-size:20px;font-weight:700;}
+    .state-sub{font-size:14px;color:var(--text-2);max-width:340px;line-height:1.7;}
+    .spin{width:26px;height:26px;border:2.5px solid rgba(79,140,255,0.25);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── BUNDLE HEADER ── */
+    .bundle-wrap{animation:fade-up .5s ease both;}
+    .bundle-header{
+      display:flex;align-items:flex-start;justify-content:space-between;
+      gap:24px;margin-bottom:32px;flex-wrap:wrap;
+      padding:28px 32px;border-radius:var(--r);
+      background:linear-gradient(135deg,rgba(79,140,255,0.05) 0%,rgba(99,102,241,0.03) 100%);
+      border:1px solid rgba(79,140,255,0.12);
+      position:relative;overflow:hidden;
+    }
+    .bundle-header::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(79,140,255,0.4),transparent);
+    }
+    .bundle-eyebrow{font-family:var(--font-m);font-size:10px;letter-spacing:2.5px;color:var(--accent);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+    .bundle-eyebrow::before{content:'';width:18px;height:1px;background:var(--accent);opacity:.6;}
+    .bundle-title{font-family:var(--font-d);font-size:44px;letter-spacing:1.5px;margin-bottom:8px;line-height:1;}
+    .bundle-stats{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+    .bundle-stat{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text-2);}
+    .bundle-stat-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);opacity:.5;}
+    .bundle-actions{display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0;align-items:flex-start;}
+
+    /* ── DOWNLOAD ALL BTN ── */
+    .btn-dl-all{
+      display:flex;align-items:center;gap:9px;
+      padding:13px 24px;border-radius:var(--r-sm);
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      border:none;color:#fff;font-size:14px;font-weight:700;
+      cursor:pointer;font-family:var(--font-b);white-space:nowrap;
+      box-shadow:0 4px 24px rgba(34,197,94,0.28);
+      transition:all .22s var(--ease);
+    }
+    .btn-dl-all:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(34,197,94,0.4);}
+    .btn-dl-all:active{transform:translateY(0);}
+    .btn-dl-all.loading-all{opacity:.75;cursor:not-allowed;transform:none!important;}
+
+    /* download progress bar for download all */
+    .dl-progress-wrap{margin-top:12px;display:none;}
+    .dl-progress-wrap.visible{display:block;}
+    .dl-progress-bar-bg{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+    .dl-progress-bar-fill{height:100%;background:var(--green);border-radius:2px;transition:width .3s var(--ease);width:0%;}
+    .dl-progress-label{font-family:var(--font-m);font-size:10px;color:var(--text-3);margin-top:5px;}
+
+    /* ── FILE GRID ── */
+    .file-grid{display:flex;flex-direction:column;gap:8px;}
+
+    .file-row{
+      display:flex;align-items:center;gap:16px;
+      padding:18px 20px;border-radius:var(--r);
+      background:var(--card);border:1px solid var(--border);
+      cursor:pointer;transition:all .2s var(--ease);
+      animation:fade-up .4s ease both;
+      position:relative;overflow:hidden;
+    }
+    .file-row::after{
+      content:'';position:absolute;left:0;top:0;bottom:0;
+      width:3px;background:var(--accent);border-radius:0 2px 2px 0;
+      transform:scaleY(0);transition:transform .2s var(--ease);transform-origin:center;
+    }
+    .file-row:hover{border-color:rgba(79,140,255,0.28);background:var(--card-hover);}
+    .file-row:hover::after{transform:scaleY(1);}
+    .file-row:hover .file-row-name{color:var(--accent);}
+    .file-row.preview-open{border-color:rgba(79,140,255,0.35);background:var(--card-hover);}
+    .file-row.preview-open::after{transform:scaleY(1);}
+
+    /* ext badge */
+    .fr-ext{
+      width:46px;height:46px;border-radius:11px;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;
+      font-family:var(--font-m);font-size:9px;font-weight:500;
+      text-transform:uppercase;letter-spacing:.5px;
+    }
+    .fr-ext.img{background:rgba(79,140,255,0.12);border:1px solid rgba(79,140,255,0.2);color:#60a5fa;}
+    .fr-ext.vid{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;}
+    .fr-ext.aud{background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.2);color:#c084fc;}
+    .fr-ext.pdf{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;}
+    .fr-ext.doc{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);color:#93c5fd;}
+    .fr-ext.cod{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);color:#86efac;}
+    .fr-ext.def{background:var(--accent-dim);border:1px solid rgba(79,140,255,0.18);color:var(--accent);}
+
+    .fr-info{flex:1;min-width:0;}
+    .file-row-name{display:block;font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;transition:color .18s;}
+    .file-row-meta{display:flex;align-items:center;gap:12px;}
+    .file-row-size{font-family:var(--font-m);font-size:11px;color:var(--text-3);}
+    .file-row-tag{font-family:var(--font-m);font-size:10px;padding:2px 8px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text-3);}
+    .file-row-hint{font-size:11px;color:var(--text-3);display:flex;align-items:center;gap:5px;}
+
+    .fr-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+
+    /* copy btn */
+    .fr-copy-btn{
+      display:flex;align-items:center;gap:6px;padding:9px 15px;
+      border-radius:var(--r-sm);font-size:12px;font-weight:500;
+      cursor:pointer;font-family:var(--font-b);transition:all .18s var(--ease);
+      white-space:nowrap;background:var(--accent-dim);
+      border:1px solid rgba(79,140,255,0.22);color:var(--accent);
+    }
+    .fr-copy-btn:hover{background:rgba(79,140,255,0.2);border-color:rgba(79,140,255,0.4);}
+    .fr-copy-btn.copied{background:var(--green-dim);border-color:rgba(34,197,94,0.25);color:var(--green);}
+
+    /* download btn — per file */
+    .fr-dl-btn{
+      display:flex;align-items:center;gap:7px;padding:9px 16px;
+      border-radius:var(--r-sm);font-size:12px;font-weight:600;
+      cursor:pointer;font-family:var(--font-b);transition:all .18s var(--ease);
+      white-space:nowrap;background:var(--green-dim);
+      border:1px solid rgba(34,197,94,0.22);color:var(--green);
+      position:relative;overflow:hidden;
+    }
+    .fr-dl-btn:hover{background:rgba(34,197,94,0.2);border-color:rgba(34,197,94,0.4);transform:translateY(-1px);}
+    .fr-dl-btn:active{transform:translateY(0);}
+    .fr-dl-btn.downloading{opacity:.7;cursor:not-allowed;}
+    .fr-dl-btn.done{background:rgba(34,197,94,0.25);border-color:rgba(34,197,94,0.5);color:var(--green);}
+
+    /* download shimmer */
+    .fr-dl-btn .shimmer{
+      position:absolute;inset:0;
+      background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.08) 50%,transparent 100%);
+      transform:translateX(-100%);
+    }
+    .fr-dl-btn.downloading .shimmer{animation:shimmer 1s ease infinite;}
+    @keyframes shimmer{to{transform:translateX(100%)}}
+
+    /* ── INLINE PREVIEW ── */
+    .inline-preview-panel{
+      border-radius:var(--r);border:1px solid rgba(79,140,255,0.25);
+      background:var(--card);overflow:hidden;
+      animation:panel-in .28s cubic-bezier(0.34,1.2,0.64,1) both;
+      margin-top:6px;
+    }
+    @keyframes panel-in{from{opacity:0;transform:scaleY(.94);transform-origin:top}to{opacity:1;transform:scaleY(1)}}
+    .inline-preview-header{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:12px 18px;
+      background:rgba(79,140,255,0.05);
+      border-bottom:1px solid rgba(79,140,255,0.12);
+    }
+    .iph-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
+    .iph-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;animation:pulse 2s ease infinite;}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+    .inline-preview-title{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .iph-right{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:12px;}
+    .iph-dl-btn{
+      display:flex;align-items:center;gap:5px;padding:6px 12px;
+      border-radius:var(--r-xs);font-size:11px;font-weight:500;
+      cursor:pointer;font-family:var(--font-b);
+      background:var(--green-dim);border:1px solid rgba(34,197,94,0.22);color:var(--green);
+      transition:all .15s;
+    }
+    .iph-dl-btn:hover{background:rgba(34,197,94,0.2);}
+    .inline-close{background:none;border:none;cursor:pointer;color:var(--text-3);font-size:20px;line-height:1;padding:0 2px;transition:color .15s;}
+    .inline-close:hover{color:var(--text);}
+    .inline-preview-body iframe,.inline-preview-body img,.inline-preview-body video,.inline-preview-body audio{display:block;width:100%;border:none;}
+    .inline-preview-body img{max-height:58vh;object-fit:contain;background:#000;}
+    .inline-preview-body video{max-height:58vh;background:#000;}
+    .inline-preview-body iframe{height:58vh;}
+    .inline-preview-body audio{padding:24px;}
+    .inline-preview-body .text-preview{max-height:58vh;}
+
+    /* ── SINGLE FILE VIEW ── */
+    .single-wrap{animation:fade-up .5s ease both;}
+    .single-hero{
+      display:flex;align-items:flex-start;gap:22px;
+      padding:32px;border-radius:var(--r);
+      background:linear-gradient(135deg,rgba(79,140,255,0.05),rgba(99,102,241,0.03));
+      border:1px solid rgba(79,140,255,0.12);
+      margin-bottom:24px;position:relative;overflow:hidden;
+    }
+    .single-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(79,140,255,0.4),transparent);}
+    .single-file-icon{
+      width:64px;height:64px;border-radius:14px;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;
+      background:var(--accent-dim);border:1px solid rgba(79,140,255,0.22);color:var(--accent);
+    }
+    .single-info{flex:1;min-width:0;}
+    .single-eyebrow{font-family:var(--font-m);font-size:10px;letter-spacing:2px;color:var(--text-3);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+    .single-eyebrow::before{content:'';width:16px;height:1px;background:var(--text-3);}
+    .single-name{font-size:24px;font-weight:700;color:var(--text);word-break:break-word;margin-bottom:8px;line-height:1.3;}
+    .single-badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .single-badge{font-family:var(--font-m);font-size:10px;padding:3px 10px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text-3);}
+    .single-badge.green{background:var(--green-dim);border-color:rgba(34,197,94,0.2);color:var(--green);}
+    .single-badge.blue{background:var(--accent-dim);border-color:rgba(79,140,255,0.2);color:var(--accent);}
+
+    .single-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;}
+    .btn-dl-single{
+      display:flex;align-items:center;gap:10px;
+      padding:14px 28px;border-radius:var(--r-sm);
+      background:linear-gradient(135deg,var(--green),#16a34a);
+      border:none;color:#fff;font-size:15px;font-weight:700;
+      cursor:pointer;font-family:var(--font-b);
+      box-shadow:0 4px 24px rgba(34,197,94,0.25);
+      transition:all .22s var(--ease);position:relative;overflow:hidden;
+    }
+    .btn-dl-single:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(34,197,94,0.38);}
+    .btn-dl-single:active{transform:translateY(0);}
+    .btn-dl-single.downloading{opacity:.75;cursor:not-allowed;transform:none!important;}
+    .btn-dl-single .shimmer{position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);transform:translateX(-100%);}
+    .btn-dl-single.downloading .shimmer{animation:shimmer 1s ease infinite;}
+
+    .btn-copy-link{
+      display:flex;align-items:center;gap:8px;padding:14px 22px;
+      border-radius:var(--r-sm);background:var(--accent-dim);
+      border:1px solid rgba(79,140,255,0.22);color:var(--accent);
+      font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-b);
+      transition:all .2s var(--ease);
+    }
+    .btn-copy-link:hover{background:rgba(79,140,255,0.2);border-color:rgba(79,140,255,0.4);}
+    .btn-copy-link.copied{background:var(--green-dim);border-color:rgba(34,197,94,0.25);color:var(--green);}
+
+    /* ── PREVIEW PANE ── */
+    .preview-pane{border-radius:var(--r);border:1px solid var(--border);background:var(--card);overflow:hidden;min-height:300px;}
+    .preview-pane-header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02);}
+    .pph-title{font-family:var(--font-m);font-size:11px;color:var(--text-3);letter-spacing:.5px;text-transform:uppercase;}
+    .preview-pane iframe,.preview-pane img,.preview-pane video,.preview-pane audio{display:block;width:100%;border:none;}
+    .preview-pane img{max-height:70vh;object-fit:contain;background:#000;}
+    .preview-pane video{max-height:70vh;background:#000;}
+    .preview-pane audio{padding:32px;width:100%;}
+    .preview-pane iframe{height:70vh;}
+
+    /* text preview */
+    .text-preview{padding:26px;font-family:var(--font-m);font-size:12.5px;color:var(--text-2);line-height:1.9;white-space:pre-wrap;word-break:break-word;max-height:70vh;overflow-y:auto;}
+    .text-preview::-webkit-scrollbar{width:4px;}
+    .text-preview::-webkit-scrollbar-thumb{background:var(--border-lit);border-radius:2px;}
+
+    /* no preview */
+    .no-preview{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:70px 28px;text-align:center;}
+    .no-preview-icon{width:68px;height:68px;border-radius:16px;background:rgba(255,255,255,0.03);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-3);}
+    .no-preview-title{font-size:17px;font-weight:600;color:var(--text);}
+    .no-preview-sub{font-size:13px;color:var(--text-3);max-width:280px;line-height:1.7;}
+
+    /* ── TOAST ── */
+    .ns-toast{position:fixed;top:70px;right:20px;z-index:9999;display:flex;align-items:center;gap:10px;padding:13px 16px;border-radius:10px;max-width:340px;font-family:var(--font-b);font-size:13px;font-weight:500;line-height:1.4;box-shadow:0 8px 32px rgba(0,0,0,0.45);backdrop-filter:blur(14px);animation:toast-in .3s cubic-bezier(0.34,1.56,0.64,1) forwards;}
+    .toast-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;}
+    @keyframes toast-in{from{opacity:0;transform:translateX(20px) scale(.95)}to{opacity:1;transform:none}}
+    @keyframes toast-out{from{opacity:1;transform:none}to{opacity:0;transform:translateX(20px)}}
+
+    @keyframes fade-up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+    :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px;}
+    ::-webkit-scrollbar{width:5px;}
+    ::-webkit-scrollbar-thumb{background:var(--border-lit);border-radius:3px;}
+
+    @media(max-width:680px){
+      .main{padding:24px 16px 72px;}
+      .bundle-header{padding:20px;flex-direction:column;gap:16px;}
+      .bundle-title{font-size:34px;}
+      .fr-actions{flex-wrap:wrap;gap:6px;}
+      .fr-copy-btn,.fr-dl-btn{flex:1;justify-content:center;padding:9px 12px;}
+      .single-actions{flex-direction:column;}
+      .btn-dl-single,.btn-copy-link{justify-content:center;}
+      .single-hero{flex-direction:column;gap:16px;}
+      .nav-tags{display:none;}
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow g1"></div>
+  <div class="bg-glow g2"></div>
+
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a class="nav-logo" href="index.html">
+        <img src="logo.png" alt="Drop-It" class="nav-logo-img"/>
+        <span class="logo-text">Drop-It</span>
+      </a>
+      <div class="nav-right">
+        <a class="nav-back" href="index.html">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Upload Files
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main" id="main">
+    <div class="state-center">
+      <div class="state-icon loading"><div class="spin"></div></div>
+      <p class="state-title">Loading your file</p>
+      <p class="state-sub">Fetching from cloud storage...</p>
+    </div>
+  </main>
+
+<script>
+const API_BASE = "https://svzju8smoa.execute-api.ap-south-1.amazonaws.com/prod/upload";
+const mainEl   = document.getElementById("main");
+
+/* ── UTILS ────────────────────────────────────────── */
+function escH(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function formatSize(b){if(!b||b===0)return"—";if(b<1024)return b+" B";if(b<1048576)return(b/1024).toFixed(1)+" KB";return(b/1048576).toFixed(2)+" MB";}
+function getExt(n){if(!n)return"FILE";const p=n.split(".");return p.length>=2?p[p.length-1].toUpperCase():"FILE";}
+
+function extClass(name){
+  const e=getExt(name).toLowerCase();
+  if(/^(jpg|jpeg|png|gif|webp|svg)$/.test(e))return"img";
+  if(/^(mp4|webm|ogg|mov|avi)$/.test(e))return"vid";
+  if(/^(mp3|wav|aac|flac|ogg)$/.test(e))return"aud";
+  if(e==="pdf")return"pdf";
+  if(/^(doc|docx|xls|xlsx|ppt|pptx)$/.test(e))return"doc";
+  if(/^(js|ts|py|java|c|cpp|h|html|css|json|xml|sh|yaml|yml|md)$/.test(e))return"cod";
+  return"def";
+}
+
+function isImage(n){return/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(n);}
+function isVideo(n){return/\.(mp4|webm|ogg|mov)$/i.test(n);}
+function isAudio(n){return/\.(mp3|wav|ogg|aac|flac)$/i.test(n);}
+function isPdf(n)  {return/\.pdf$/i.test(n);}
+function isText(n) {return/\.(txt|md|csv|json|js|ts|html|css|xml|log|sh|py|java|c|cpp|h|yaml|yml|ini|toml)$/i.test(n);}
+function canPreview(n){return isImage(n)||isVideo(n)||isAudio(n)||isPdf(n)||isText(n);}
+
+/* ── TOAST ─────────────────────────────────────────── */
+function toast(msg, type="info"){
+  document.querySelectorAll(".ns-toast").forEach(t=>t.remove());
+  const cfg={
+    success:{bg:"#0a1a0d",bdr:"rgba(34,197,94,.3)",tx:"#86efac",ic:"✓",icbg:"rgba(34,197,94,.2)"},
+    error:  {bg:"#1a0a0a",bdr:"rgba(239,68,68,.3)",tx:"#fca5a5",ic:"✕",icbg:"rgba(239,68,68,.2)"},
+    info:   {bg:"#080e1c",bdr:"rgba(79,140,255,.3)",tx:"#93c5fd",ic:"↓",icbg:"rgba(79,140,255,.2)"},
+  };
+  const c=cfg[type]||cfg.info;
+  const el=document.createElement("div");
+  el.className="ns-toast";
+  el.style.cssText=`background:${c.bg};border:1px solid ${c.bdr};color:${c.tx}`;
+  el.innerHTML=`<div class="toast-icon" style="background:${c.icbg};color:${c.tx}">${c.ic}</div><span style="flex:1">${msg}</span><button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:${c.tx};opacity:.4;font-size:18px;padding:0;line-height:1;margin-left:6px">×</button>`;
+  document.body.appendChild(el);
+  setTimeout(()=>{if(!el.parentElement)return;el.style.animation="toast-out .25s ease forwards";setTimeout(()=>el.remove(),260);},4000);
+}
+
+/* ── COPY ───────────────────────────────────────────── */
+function copyUrl(url, btn){
+  navigator.clipboard.writeText(url).then(()=>{
+    const orig=btn.innerHTML;
+    btn.classList.add("copied");
+    btn.innerHTML=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!`;
+    toast("Link copied to clipboard!","success");
+    setTimeout(()=>{btn.classList.remove("copied");btn.innerHTML=orig;},2400);
+  }).catch(()=>toast("Could not copy — try manually.","error"));
+}
+
+/* ── DOWNLOAD ───────────────────────────────────────── */
+// Strategy: fetch → blob → <a download> — works for cross-origin S3 files
+// NO window.open fallback — that causes files to open in new tabs instead of downloading.
+// If fetch fails, show an error toast only.
+
+async function downloadFile(url, name, btn){
+  const origHtml = btn ? btn.innerHTML : null;
+
+  // ── with button (single file click) ──────────────────
+  if(btn){
+    if(btn.dataset.downloading==="1") return;
+    btn.dataset.downloading="1";
+    btn.classList.add("downloading");
+    btn.innerHTML=`<div class="shimmer"></div><svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="animation:spin .8s linear infinite"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" stroke-dasharray="30 40"/></svg> Downloading...`;
+  }
+
+  try{
+    const res = await fetch(url, {mode:"cors", cache:"no-store"});
+    if(!res.ok) throw new Error(`Server returned ${res.status}`);
+    const blob = await res.blob();
+
+    // Force download — never open in browser
+    const safeBlob = new Blob([blob], {type:"application/octet-stream"});
+    const bUrl = URL.createObjectURL(safeBlob);
+    const a = document.createElement("a");
+    a.href = bUrl;
+    a.download = name || "download";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(bUrl); a.remove(); }, 500);
+
+    if(btn){
+      btn.classList.remove("downloading");
+      btn.classList.add("done");
+      btn.innerHTML=`<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Downloaded!`;
+      toast(`"${name}" saved to Downloads!`, "success");
+      setTimeout(()=>{
+        btn.classList.remove("done");
+        btn.innerHTML = origHtml;
+        delete btn.dataset.downloading;
+      }, 3000);
+    }
+
+    return true; // success signal for downloadAll
+
+  }catch(err){
+    console.error("[Drop-It] Download failed:", name, err);
+    if(btn){
+      btn.classList.remove("downloading");
+      btn.innerHTML = origHtml;
+      delete btn.dataset.downloading;
+      toast(`Failed to download "${name}". Check your connection.`, "error");
+    }
+    return false; // failure signal for downloadAll
+  }
+}
+
+/* download-all with progress bar */
+async function downloadAll(files, dlAllBtn, progressWrap, progressFill, progressLabel){
+  if(dlAllBtn.dataset.downloading==="1")return;
+  dlAllBtn.dataset.downloading="1";
+  dlAllBtn.classList.add("loading-all");
+  const origHtml=dlAllBtn.innerHTML;
+  dlAllBtn.innerHTML=`<div class="shimmer"></div><svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="animation:spin .8s linear infinite"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" stroke-dasharray="30 40"/></svg> Downloading ${files.length} files...`;
+
+  progressWrap.classList.add("visible");
+  progressFill.style.width="0%";
+  progressLabel.textContent=`0 / ${files.length} files`;
+
+  let done=0;
+  for(const f of files){
+    progressLabel.textContent=`Downloading: ${f.file_name}`;
+    await downloadFile(f.download_url, f.file_name, null);
+    done++;
+    const pct=Math.round((done/files.length)*100);
+    progressFill.style.width=pct+"%";
+    progressLabel.textContent=`${done} / ${files.length} files done`;
+    // small gap between downloads so browser doesn't block multiple
+    if(done<files.length) await new Promise(r=>setTimeout(r,500));
+  }
+
+  dlAllBtn.classList.remove("loading-all");
+  dlAllBtn.innerHTML=`<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> All Downloaded!`;
+  progressLabel.textContent=`All ${files.length} files downloaded ✓`;
+  toast(`All ${files.length} files downloaded!`,"success");
+
+  setTimeout(()=>{
+    dlAllBtn.innerHTML=origHtml;
+    delete dlAllBtn.dataset.downloading;
+    progressWrap.classList.remove("visible");
+    progressFill.style.width="0%";
+  },4000);
+}
+
+/* ── PREVIEW BUILDER ────────────────────────────────── */
+function buildPreviewEl(url, name){
+  if(isImage(name)){
+    const i=document.createElement("img");
+    i.src=url; i.alt=name;
+    i.onerror=()=>i.replaceWith(noPreviewEl(name));
+    return i;
+  }
+  if(isVideo(name)){
+    const v=document.createElement("video");
+    v.src=url; v.controls=true; v.preload="metadata";
+    return v;
+  }
+  if(isAudio(name)){
+    const a=document.createElement("audio");
+    a.src=url; a.controls=true; a.preload="metadata";
+    return a;
+  }
+  if(isPdf(name)){
+    const f=document.createElement("iframe");
+    f.src=url+"#toolbar=1&navpanes=0&scrollbar=1";
+    f.title=name; f.loading="lazy";
+    return f;
+  }
+  if(isText(name)){
+    const d=document.createElement("div");
+    d.className="text-preview";
+    d.textContent="Loading...";
+    fetch(url).then(r=>r.text()).then(t=>{d.textContent=t;}).catch(()=>{d.textContent="Could not load file content.";});
+    return d;
+  }
+  return null;
+}
+
+function noPreviewEl(name){
+  const d=document.createElement("div"); d.className="no-preview";
+  d.innerHTML=`
+    <div class="no-preview-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" stroke="currentColor" stroke-width="1.5"/>
+        <polyline points="13 2 13 9 20 9" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <p class="no-preview-title">Preview not available</p>
+    <p class="no-preview-sub">.${getExt(name).toLowerCase()} files can't be previewed in the browser — download the file to open it.</p>`;
+  return d;
+}
+
+function showError(title,sub){
+  mainEl.innerHTML=`
+    <div class="state-center">
+      <div class="state-icon error">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <line x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <p class="state-title">${escH(title)}</p>
+      <p class="state-sub">${escH(sub)}</p>
+      <a href="index.html" style="margin-top:10px;color:var(--accent);font-size:13px;font-weight:500;text-decoration:underline;text-underline-offset:3px">← Go back to upload</a>
+    </div>`;
+}
+
+/* ── SINGLE FILE RENDER ─────────────────────────────── */
+function renderSingle(fileUrl, fileName, fileSize){
+  const name=fileName||decodeURIComponent(fileUrl.split("/").pop().split("?")[0])||"file";
+  const ext=getExt(name);
+  const ec=extClass(name);
+  const pageUrl=window.location.href;
+  document.title=`Drop-It — ${name}`;
+
+  const wrap=document.createElement("div");
+  wrap.className="single-wrap";
+
+  // hero
+  const hero=document.createElement("div");
+  hero.className="single-hero";
+  hero.innerHTML=`
+    <div class="single-file-icon fr-ext ${ec}" style="width:64px;height:64px;border-radius:14px;font-size:11px">${escH(ext)}</div>
+    <div class="single-info">
+      <p class="single-eyebrow">Drop-It · Shared File</p>
+      <h1 class="single-name">${escH(name)}</h1>
+      <div class="single-badges">
+        <span class="single-badge blue">${ext} file</span>
+        ${fileSize?`<span class="single-badge">${formatSize(fileSize)}</span>`:""}
+        ${canPreview(name)?`<span class="single-badge green">Preview available</span>`:`<span class="single-badge">Download to open</span>`}
+        <span class="single-badge">AES Encrypted</span>
+        <span class="single-badge">Stored permanently</span>
+      </div>
+    </div>`;
+  wrap.appendChild(hero);
+
+  // actions
+  const acts=document.createElement("div");acts.className="single-actions";
+
+  const dlBtn=document.createElement("button");
+  dlBtn.className="btn-dl-single";
+  dlBtn.innerHTML=`<div class="shimmer"></div><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Download File`;
+  dlBtn.addEventListener("click",()=>downloadFile(fileUrl,name,dlBtn));
+  acts.appendChild(dlBtn);
+
+  const cpBtn=document.createElement("button");
+  cpBtn.className="btn-copy-link";
+  const cpOrig=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="1.5"/></svg> Copy Link`;
+  cpBtn.innerHTML=cpOrig;
+  cpBtn.addEventListener("click",()=>copyUrl(pageUrl,cpBtn));
+  acts.appendChild(cpBtn);
+  wrap.appendChild(acts);
+
+  // preview pane
+  const pane=document.createElement("div"); pane.className="preview-pane";
+  const paneHdr=document.createElement("div"); paneHdr.className="preview-pane-header";
+  paneHdr.innerHTML=`<span class="pph-title">File Preview</span><span style="font-family:var(--font-m);font-size:10px;color:var(--text-3)">${escH(name)}</span>`;
+  pane.appendChild(paneHdr);
+  const prevEl=buildPreviewEl(fileUrl,name);
+  pane.appendChild(prevEl||noPreviewEl(name));
+  wrap.appendChild(pane);
+
+  mainEl.innerHTML=""; mainEl.appendChild(wrap);
+}
+
+/* ── BUNDLE RENDER ──────────────────────────────────── */
+function renderBundle(data){
+  const {bundle_id,total_files,files}=data;
+  const totalSize=files.reduce((s,f)=>s+(f.file_size||0),0);
+  document.title=`Drop-It — Bundle (${total_files} files)`;
+
+  const wrap=document.createElement("div"); wrap.className="bundle-wrap";
+
+  /* ─ header card ─ */
+  const hdr=document.createElement("div"); hdr.className="bundle-header";
+
+  const titleGrp=document.createElement("div");
+  titleGrp.innerHTML=`
+    <p class="bundle-eyebrow">Drop-It · Shared Bundle</p>
+    <h1 class="bundle-title">File Bundle</h1>
+    <div class="bundle-stats">
+      <span class="bundle-stat">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" stroke="currentColor" stroke-width="1.5"/></svg>
+        ${total_files} file${total_files!==1?"s":""}
+      </span>
+      <span class="bundle-stat-dot"></span>
+      <span class="bundle-stat">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z" stroke="currentColor" stroke-width="1.5"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        ${formatSize(totalSize)} total
+      </span>
+      <span class="bundle-stat-dot"></span>
+      <span class="bundle-stat" style="color:var(--green)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.5"/></svg>
+        AES Encrypted
+      </span>
+    </div>`;
+
+  /* progress bar for download all */
+  const dlProgress=document.createElement("div"); dlProgress.className="dl-progress-wrap";
+  dlProgress.innerHTML=`<div class="dl-progress-bar-bg"><div class="dl-progress-bar-fill" id="dlFill"></div></div><p class="dl-progress-label" id="dlLabel"></p>`;
+  titleGrp.appendChild(dlProgress);
+  hdr.appendChild(titleGrp);
+
+  /* download all button */
+  const actGroup=document.createElement("div"); actGroup.className="bundle-actions";
+  const dlAllBtn=document.createElement("button"); dlAllBtn.className="btn-dl-all";
+  dlAllBtn.innerHTML=`<div class="shimmer"></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Download All`;
+  actGroup.appendChild(dlAllBtn);
+  hdr.appendChild(actGroup);
+  wrap.appendChild(hdr);
+
+  /* wire up download all */
+  const fillEl=dlProgress.querySelector("#dlFill");
+  const labelEl=dlProgress.querySelector("#dlLabel");
+  dlAllBtn.addEventListener("click",()=>downloadAll(files,dlAllBtn,dlProgress,fillEl,labelEl));
+
+  /* ─ file grid ─ */
+  const grid=document.createElement("div"); grid.className="file-grid";
+  let openRow=null, openPanel=null;
+
+  files.forEach((f,idx)=>{
+    const name=f.file_name;
+    const dlUrl=f.download_url;
+    const ext=getExt(name);
+    const ec=extClass(name);
+    const prev=canPreview(name);
+    const filePageUrl=`${window.location.href.split("?")[0]}?f=${encodeURIComponent(dlUrl)}`;
+
+    const row=document.createElement("div");
+    row.className="file-row";
+    row.style.animationDelay=(idx*0.055)+"s";
+
+    row.innerHTML=`
+      <div class="fr-ext ${ec}">${escH(ext)}</div>
+      <div class="fr-info">
+        <span class="file-row-name">${escH(name)}</span>
+        <div class="file-row-meta">
+          <span class="file-row-size">${formatSize(f.file_size)}</span>
+          <span class="file-row-tag">${escH(ext)}</span>
+          <span class="file-row-hint">
+            ${prev
+              ?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg> Click to preview`
+              :`<svg width="11" height="11" viewBox="0 0 24 24" fill="none"><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6.53 6.53A13.6 13.6 0 001 12s4 8 11 8a9.08 9.08 0 008.47-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> No preview`
+            }
+          </span>
+        </div>
+      </div>
+      <div class="fr-actions">
+        <button class="fr-copy-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+            <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          Copy Link
+        </button>
+        <button class="fr-dl-btn">
+          <div class="shimmer"></div>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Download
+        </button>
+      </div>`;
+
+    const copyBtn=row.querySelector(".fr-copy-btn");
+    const dlBtn=row.querySelector(".fr-dl-btn");
+
+    copyBtn.addEventListener("click",(e)=>{e.stopPropagation();copyUrl(filePageUrl,copyBtn);});
+    dlBtn.addEventListener("click",(e)=>{e.stopPropagation();downloadFile(dlUrl,name,dlBtn);});
+
+    /* click row body → inline preview */
+    row.addEventListener("click",(e)=>{
+      if(e.target.closest(".fr-copy-btn")||e.target.closest(".fr-dl-btn"))return;
+      if(!prev){toast(`Can't preview .${ext.toLowerCase()} files — click Download instead.`,"info");return;}
+
+      if(openRow===row&&openPanel){
+        openPanel.remove(); openRow=null; openPanel=null;
+        row.classList.remove("preview-open");
+        return;
+      }
+      if(openPanel){
+        openPanel.remove();
+        openRow.classList.remove("preview-open");
+        openRow=null; openPanel=null;
+      }
+
+      const panel=document.createElement("div"); panel.className="inline-preview-panel";
+      panel.innerHTML=`
+        <div class="inline-preview-header">
+          <div class="iph-left">
+            <div class="iph-dot"></div>
+            <span class="inline-preview-title">${escH(name)}</span>
+          </div>
+          <div class="iph-right">
+            <button class="iph-dl-btn">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Download
+            </button>
+            <button class="inline-close" title="Close preview">×</button>
+          </div>
+        </div>
+        <div class="inline-preview-body" id="ipb${idx}"></div>`;
+
+      panel.querySelector(".iph-dl-btn").addEventListener("click",(e)=>{
+        e.stopPropagation();
+        downloadFile(dlUrl,name,panel.querySelector(".iph-dl-btn"));
+      });
+      panel.querySelector(".inline-close").addEventListener("click",(e)=>{
+        e.stopPropagation();
+        panel.remove(); row.classList.remove("preview-open");
+        openRow=null; openPanel=null;
+      });
+
+      const body=panel.querySelector(`#ipb${idx}`);
+      const el=buildPreviewEl(dlUrl,name);
+      if(el)body.appendChild(el); else body.appendChild(noPreviewEl(name));
+
+      row.insertAdjacentElement("afterend",panel);
+      row.classList.add("preview-open");
+      openRow=row; openPanel=panel;
+      setTimeout(()=>panel.scrollIntoView({behavior:"smooth",block:"nearest"}),50);
+    });
+
+    grid.appendChild(row);
+  });
+
+  wrap.appendChild(grid);
+  mainEl.innerHTML=""; mainEl.appendChild(wrap);
+}
+
+/* ── INIT ───────────────────────────────────────────── */
+(async function(){
+  const params  =new URLSearchParams(window.location.search);
+  const bundleId=params.get("bundle_id");
+  const fileUrl =params.get("f");
+
+  if(bundleId){
+    try{
+      const res=await fetch(`${API_BASE}?bundle_id=${encodeURIComponent(bundleId)}`);
+      if(!res.ok)throw new Error(`Server returned ${res.status}`);
+      const data=await res.json();
+      if(!data.files||data.files.length===0)throw new Error("No files found in this bundle.");
+      renderBundle(data);
+    }catch(err){
+      showError("Bundle not found", err.message||"This link may be invalid or files may have been deleted.");
+    }
+    return;
+  }
+
+  if(fileUrl){
+    const decoded=decodeURIComponent(fileUrl);
+    const name=decodeURIComponent(decoded.split("/").pop().split("?")[0])||"file";
+    renderSingle(decoded,name,null);
+    return;
+  }
+
+  showError("No file specified","This link doesn't point to any file. Ask the sender to share a valid Drop-It link.");
+})();
+</script>
+</body>
+</html>
