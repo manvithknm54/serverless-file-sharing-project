@@ -6,12 +6,6 @@ DropIt is a cloud-native, serverless file sharing platform built on AWS. Upload 
 
 ---
 
-## Live Demo
-
-> 🌐 **[Coming Soon — Deployment in Progress]**
-
----
-
 ## Features
 
 - **Single File Upload** — Upload any file type (images, PDFs, docs, videos, zip, etc.) up to 10MB and get an instant shareable link
