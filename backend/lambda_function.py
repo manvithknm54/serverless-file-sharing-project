@@ -8,19 +8,61 @@ BUCKET_NAME = 'bucket-serverless-file-sharing'
 
 def lambda_handler(event, context):
     try:
-        # Handle CORS preflight request
+        # Handle CORS preflight
         if event.get('httpMethod') == 'OPTIONS':
             return {
                 'statusCode': 200,
                 'headers': {
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Headers': 'Content-Type',
-                    'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS'
+                    'Access-Control-Allow-Methods': 'POST, DELETE, GET, OPTIONS'
                 },
                 'body': ''
             }
 
         http_method = event.get('httpMethod', 'POST')
+
+        # ─── GET BUNDLE FILES ──────────────────────────────────────
+        if http_method == 'GET':
+            params = event.get('queryStringParameters') or {}
+            bundle_id = params.get('bundle_id')
+
+            if not bundle_id:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'No bundle_id provided.'})
+                }
+
+            # List all files inside the bundle folder
+            prefix = f'bundles/{bundle_id}/'
+            response = s3.list_objects_v2(
+                Bucket=BUCKET_NAME,
+                Prefix=prefix
+            )
+
+            files = []
+            if 'Contents' in response:
+                for obj in response['Contents']:
+                    file_key = obj['Key']
+                    file_name = file_key.replace(prefix, '')
+                    if file_name:
+                        files.append({
+                            'file_name': file_name,
+                            'file_size': obj['Size'],
+                            'download_url': f'https://{BUCKET_NAME}.s3.ap-south-1.amazonaws.com/{file_key}',
+                            's3_key': file_key
+                        })
+
+            return {
+                'statusCode': 200,
+                'headers': {'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({
+                    'bundle_id': bundle_id,
+                    'files': files,
+                    'total_files': len(files)
+                })
+            }
 
         # ─── DELETE FILE ───────────────────────────────────────────
         if http_method == 'DELETE':
@@ -31,7 +73,7 @@ def lambda_handler(event, context):
                 return {
                     'statusCode': 400,
                     'headers': {'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'No file key provided.'})
+                    'body': json.dumps({'error': 'No s3_key provided.'})
                 }
 
             s3.delete_object(Bucket=BUCKET_NAME, Key=s3_key)
@@ -83,7 +125,7 @@ def lambda_handler(event, context):
         download_url = f'https://{BUCKET_NAME}.s3.ap-south-1.amazonaws.com/{s3_key}'
         bundle_url = None
         if bundle_id:
-            bundle_url = f'https://{BUCKET_NAME}.s3.ap-south-1.amazonaws.com/bundles/{bundle_id}/'
+            bundle_url = f'https://svzju8smoa.execute-api.ap-south-1.amazonaws.com/prod/upload?bundle_id={bundle_id}'
 
         return {
             'statusCode': 200,
@@ -104,3 +146,26 @@ def lambda_handler(event, context):
             'headers': {'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({'error': str(e)})
         }
+```
+
+---
+
+Click **Deploy** ✅
+
+---
+
+## Then Add GET Method in API Gateway
+
+After deploying, go to **API Gateway → /upload → Create method → GET**
+- Integration: Lambda
+- Proxy: ON
+- Function: `uploadFileFunction`
+- Click Create → then **Deploy API to prod**
+
+---
+
+## Tell Manvith — Bundle Link Change
+
+The bundle shareable link is now an **API URL** not an S3 URL:
+```
+https://svzju8smoa.execute-api.ap-south-1.amazonaws.com/prod/upload?bundle_id=bundle_123
