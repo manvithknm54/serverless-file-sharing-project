@@ -22,7 +22,7 @@ def lambda_handler(event, context):
 
         http_method = event.get('httpMethod', 'POST')
 
-        # ─── GET BUNDLE FILES ──────────────────────────────────────
+        # --- GET BUNDLE FILES ---
         if http_method == 'GET':
             params = event.get('queryStringParameters') or {}
             bundle_id = params.get('bundle_id')
@@ -34,7 +34,6 @@ def lambda_handler(event, context):
                     'body': json.dumps({'error': 'No bundle_id provided.'})
                 }
 
-            # List all files inside the bundle folder
             prefix = f'bundles/{bundle_id}/'
             response = s3.list_objects_v2(
                 Bucket=BUCKET_NAME,
@@ -64,7 +63,7 @@ def lambda_handler(event, context):
                 })
             }
 
-        # ─── DELETE FILE ───────────────────────────────────────────
+        # --- DELETE FILE ---
         if http_method == 'DELETE':
             body = json.loads(event['body'])
             s3_key = body.get('s3_key')
@@ -86,9 +85,12 @@ def lambda_handler(event, context):
                 })
             }
 
-        # ─── UPLOAD FILE ───────────────────────────────────────────
+        # --- UPLOAD FILE ---
         body = json.loads(event['body'])
-        file_content = base64.b64decode(body['file_content'])
+        file_content_raw = body.get('file_content', '')
+        if ',' in file_content_raw:
+            file_content_raw = file_content_raw.split(',')[1]
+        file_content = base64.b64decode(file_content_raw)
         file_name = body['file_name']
         file_type = body['file_type']
         bundle_id = body.get('bundle_id', None)
@@ -146,26 +148,3 @@ def lambda_handler(event, context):
             'headers': {'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({'error': str(e)})
         }
-```
-
----
-
-Click **Deploy** ✅
-
----
-
-## Then Add GET Method in API Gateway
-
-After deploying, go to **API Gateway → /upload → Create method → GET**
-- Integration: Lambda
-- Proxy: ON
-- Function: `uploadFileFunction`
-- Click Create → then **Deploy API to prod**
-
----
-
-## Tell Manvith — Bundle Link Change
-
-The bundle shareable link is now an **API URL** not an S3 URL:
-```
-https://svzju8smoa.execute-api.ap-south-1.amazonaws.com/prod/upload?bundle_id=bundle_123
