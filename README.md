@@ -252,25 +252,6 @@ cd serverless-file-sharing-project
 
 ---
 
-## Resume Points
-
-```
-DropIt — Serverless File Sharing System | AWS
-
-- Architected a serverless file sharing platform using AWS Lambda, API Gateway,
-  and S3 supporting single and multi-file bundle uploads with permanent storage
-
-- Implemented REST API with POST, GET, DELETE endpoints handling file upload,
-  bundle listing, and deletion with proper CORS and IAM security configuration
-
-- Built responsive frontend with live file preview, drag-and-drop upload,
-  bundle sharing, and one-click download using HTML, Tailwind CSS and JavaScript
-
-- Collaborated using Git branching strategy with feature branches,
-  pull requests and versioned releases in a 2-member team workflow
-```
-
----
 
 ## License
 
