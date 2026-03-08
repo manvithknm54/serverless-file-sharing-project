@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NimbusShare — Serverless File Sharing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- BACKGROUND -->
+  <div class="bg-grid"></div>
+  <div class="bg-glow g1"></div>
+  <div class="bg-glow g2"></div>
+  <div class="bg-glow g3"></div>
+
+  <!-- NAV -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <div class="nav-logo">
+        <div class="logo-mark">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="logo-text">NimbusShare</span>
+      </div>
+      <div class="nav-pills">
+        <span class="pill">AWS S3</span>
+        <span class="pill">Lambda</span>
+        <span class="pill">Serverless</span>
+      </div>
+      <div class="nav-right">
+        <span class="online-dot"></span>
+        <span class="online-label">Live</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <p class="hero-eyebrow">CLOUD FILE SHARING PLATFORM</p>
+    <h1 class="hero-title">Upload.<br/><em>Share instantly.</em></h1>
+    <p class="hero-desc">Drop your files. Get a shareable link in seconds.<br/>Powered by AWS Lambda · S3 · API Gateway.</p>
+    <div class="hero-stats">
+      <div class="hstat"><span class="hstat-n">10MB</span><span class="hstat-l">Max per file</span></div>
+      <div class="hstat-sep"></div>
+      <div class="hstat"><span class="hstat-n">∞</span><span class="hstat-l">Bundle size</span></div>
+      <div class="hstat-sep"></div>
+      <div class="hstat"><span class="hstat-n">AES</span><span class="hstat-l">Encrypted</span></div>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="layout">
+
+      <!-- UPLOAD CARD -->
+      <div class="card upload-card" id="uploadCard">
+        <div class="card-head">
+          <div>
+            <h2 class="card-title">Upload Files</h2>
+            <p class="card-sub">Any file type · Max 5MB each · Link expires in 24h</p>
+          </div>
+          <span class="card-tag">New Upload</span>
+        </div>
+
+        <!-- DROP ZONE -->
+        <div class="dropzone" id="dropzone">
+          <!-- EMPTY STATE -->
+          <div class="dz-empty" id="dzEmpty">
+            <div class="dz-icon-wrap">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <p class="dz-main">Drop files here</p>
+            <p class="dz-or">or</p>
+            <label class="dz-browse" for="fileInput">Browse files</label>
+            <input type="file" id="fileInput" multiple hidden/>
+            <p class="dz-hint">All file types · 10MB max per file · Unlimited bundle size</p>
+          </div>
+
+          <!-- FILES SELECTED STATE -->
+          <div class="dz-files" id="dzFiles" style="display:none">
+            <div class="dz-files-header">
+              <span class="dz-files-count" id="dzFilesCount">0 files selected</span>
+              <button class="dz-clear-btn" id="dzClearBtn">Clear all</button>
+            </div>
+            <div class="dz-file-list" id="dzFileList"></div>
+            <label class="dz-add-more" for="fileInput">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              Add more files
+            </label>
+          </div>
+        </div>
+
+        <!-- ERROR -->
+        <div class="error-strip" id="errorStrip" style="display:none">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span id="errorMsg">Error</span>
+        </div>
+
+        <!-- UPLOAD BTN -->
+        <button class="upload-btn" id="uploadBtn">
+          <span id="btnNormal" class="btn-inner">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Upload & Get Link
+          </span>
+          <span id="btnLoading" class="btn-inner" style="display:none">
+            <span class="spin"></span> Uploading...
+          </span>
+        </button>
+
+        <!-- PROGRESS -->
+        <div class="progress-area" id="progressArea" style="display:none">
+          <div class="prog-row">
+            <span class="prog-label" id="progLabel">Uploading...</span>
+            <span class="prog-pct" id="progPct">0%</span>
+          </div>
+          <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+          <div class="prog-files-status" id="progFilesStatus"></div>
+        </div>
+
+        <!-- SUCCESS LINE -->
+        <div class="success-line" id="successLine" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Upload complete — links ready below
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div class="right-panel">
+
+        <!-- RESULT CARD -->
+        <div class="card result-card" id="resultCard" style="display:none">
+          <div class="result-head">
+            <div class="result-check">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="result-title">Upload Successful!</h3>
+              <p class="result-sub" id="resultSub">Your files are ready to share</p>
+            </div>
+          </div>
+
+          <!-- BUNDLE LINK (shown for multi-file) -->
+          <div id="bundleLinkWrap" style="display:none">
+            <p class="link-section-label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              Full Bundle Link
+            </p>
+            <div class="link-card" id="bundleLinkBox">
+              <div class="link-card-left">
+                <div class="link-card-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="link-card-text">
+                  <span class="link-card-label">Share all files</span>
+                  <span class="link-card-hint" id="bundleUrlHint">Ready to copy</span>
+                </div>
+              </div>
+              <button class="link-copy-btn" id="bundleCopyBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" id="bundleCopyIcon">
+                  <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+                <span id="bundleCopyText">Copy Link</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- INDIVIDUAL FILE LINKS -->
+          <div id="fileLinksWrap">
+            <p class="link-section-label" id="fileLinksLabel">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" stroke="currentColor" stroke-width="1.5"/>
+                <polyline points="13 2 13 9 20 9" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              File Links
+            </p>
+            <div class="file-links-list" id="fileLinksList"></div>
+          </div>
+
+          <div class="result-meta-row">
+            <span class="meta-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Stored permanently
+            </span>
+            <span class="meta-pill">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              AES Encrypted
+            </span>
+          </div>
+
+          <button class="new-upload-btn" id="newUploadBtn">Upload more files</button>
+        </div>
+
+        <!-- RECENT UPLOADS -->
+        <div class="card recent-card" id="recentCard">
+          <div class="recent-head">
+            <h3 class="recent-title">Recent Uploads</h3>
+            <span class="recent-badge" id="recentBadge">0 files</span>
+          </div>
+          <div class="recent-body" id="recentBody">
+            <!-- skeleton / empty / items injected here -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-brand">NimbusShare</span>
+      <span class="footer-sep">·</span>
+      <span class="footer-info">Built on AWS Lambda · S3 · API Gateway · DynamoDB</span>
+      <span class="footer-sep">·</span>
+      <span class="footer-info">Files auto-deleted after 24 hours</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
